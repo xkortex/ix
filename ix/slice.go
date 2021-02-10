@@ -127,5 +127,5 @@ func (slice *SliceIndex) String() string {
 }
 
 func (multiSlice *MultiSlice) String() string {
-	return multiSlice.LineSlicer.String() + "," + multiSlice.FieldSlicer.String()
+	return "{" +  multiSlice.LineSlicer.String() + "," + multiSlice.FieldSlicer.String() + ", \"" + multiSlice.RecordSep + "\"}"
 }

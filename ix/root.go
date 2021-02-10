@@ -42,7 +42,7 @@ func PrintVersionAndQuit() {
 	os.Exit(0)
 }
 
-func RunIx(args []string) {
+func RunIx(args []string, sep string) {
 	// todo: stdin/file routing
 	if !HasStdinPipe() {
 		log.Fatal("No stdin found")
@@ -55,7 +55,8 @@ func RunIx(args []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	vprint.Printf("LineSlice: %v \n", multiSlice.LineSlicer)
+	multiSlice.Sep = sep
+	vprint.Printf("Slicer: %v \n", multiSlice)
 	RunIxStdin(multiSlice)
 }
 
@@ -72,8 +73,9 @@ var RootCmd = &cobra.Command{
 		}
 
 		vprint.Println("args: ", args)
+		sepArg, _ := cmd.Flags().GetString("sep")
 
-		RunIx(args)
+		RunIx(args, sepArg)
 		//_ = cmd.Help()
 		os.Exit(0)
 	},

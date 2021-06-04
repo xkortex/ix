@@ -2,13 +2,16 @@ package ix
 
 import (
 	"fmt"
+	"github.com/xkortex/vprint"
 	"regexp"
 	"strconv"
 	"strings"
 )
 
 const MaxUint = ^uint(0)
+const MinUint = 0
 const MaxInt = int(MaxUint >> 1)
+const MinInt = -MaxInt - 1
 
 type SliceIndex struct {
 	Start    int  // index of start of slice
@@ -27,6 +30,32 @@ type MultiSlice struct {
 	FilenamePat string // pattern (in typical sprintf notation) for filenames
 }
 
+func (slice *SliceIndex) New() {
+	slice.Start = MinInt
+	slice.Stop = MaxInt
+	slice.Step = 1
+}
+
+// A single-element slice
+func (slice *SliceIndex) FromSingle(index int) {
+	slice.Start = index
+	slice.Stop = index + 1
+	slice.Step = 1
+	slice.HasStart = true
+	slice.HasStop = true
+	slice.Single = true
+	vprint.Printf("Single: %s\n", slice.String())
+}
+
+// A single-element slice
+func (slice *SliceIndex) FromPair(start int, stop int) {
+	slice.Start = start
+	slice.Stop = stop
+	slice.Step = 1
+	slice.HasStart = true
+	slice.HasStop = true
+}
+
 // Convert a single dimension slice into a struct
 func ParseSliceIndex(s string) (slice *SliceIndex, err error) {
 	if s == "" {
@@ -34,16 +63,13 @@ func ParseSliceIndex(s string) (slice *SliceIndex, err error) {
 	}
 	slice = &SliceIndex{Step: 1}
 	r := regexp.MustCompile(":")
+	// covers any string lacking : aka a single index
 	if loc := r.FindStringIndex(s); loc == nil {
 		index, err := strconv.Atoi(s)
 		if err != nil {
 			return slice, err
 		}
-		slice.Start = index
-		slice.Stop = index + 1
-		slice.HasStart = true
-		slice.HasStop = true
-		slice.Single = true
+		slice.FromSingle(index)
 		return slice, nil
 	}
 
@@ -77,6 +103,9 @@ func ParseSliceIndex(s string) (slice *SliceIndex, err error) {
 		if err != nil {
 			return slice, err
 		}
+		if step < 0 {
+			panic("Negative step is still under development")
+		}
 		slice.Step = step
 	}
 
@@ -108,6 +137,16 @@ func ParseMultiSlice(sliceStr string) (mslice *MultiSlice, err error) {
 
 }
 
+// yuck.
+func (multiSlice *MultiSlice) FillNil() {
+	if multiSlice.LineSlicer == nil {
+		multiSlice.LineSlicer = &SliceIndex{}
+	}
+	if multiSlice.FieldSlicer == nil {
+		multiSlice.FieldSlicer = &SliceIndex{}
+	}
+}
+
 func (slice *SliceIndex) String() string {
 	if slice == nil {
 		return ""
@@ -127,5 +166,37 @@ func (slice *SliceIndex) String() string {
 }
 
 func (multiSlice *MultiSlice) String() string {
-	return "{" +  multiSlice.LineSlicer.String() + "," + multiSlice.FieldSlicer.String() + ", \"" + multiSlice.RecordSep + "\"}"
+	return "{" + multiSlice.LineSlicer.String() + "," + multiSlice.FieldSlicer.String() + ", \"" + multiSlice.RecordSep + "\"}"
+}
+
+func (slice *SliceIndex) Copy() SliceIndex {
+	return SliceIndex{slice.Start, slice.Stop, slice.Step, slice.HasStart, slice.HasStop, slice.Single}
+}
+
+func (slice *SliceIndex) Normalize(length int) {
+	if !slice.HasStart {
+		slice.Start = 0
+		slice.HasStart = true
+	}
+	if !slice.HasStop {
+		slice.Stop = length
+		slice.HasStop = true
+	}
+	if slice.Start < 0 {
+		slice.Start = slice.Start + length
+	}
+	if slice.Stop < 0 {
+		slice.Stop = slice.Stop + length
+	}
+
+	if slice.Start < 0 {
+		slice.Start = 0
+	}
+	if slice.Stop > length {
+		slice.Stop = length
+	}
+
+	if slice.Start > slice.Stop {
+		slice.Start = slice.Stop
+	}
 }

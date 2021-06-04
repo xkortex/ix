@@ -1,0 +1,29 @@
+package main
+
+import (
+	"fmt"
+)
+
+func Print[T any](s []T) {
+	for _, v := range s {
+		fmt.Print(v)
+	}
+}
+
+
+func PrintOpt[T Option](o T) {
+	if o.IsSome() {
+		fmt.Print(o.Unwrap())
+	} else {
+		fmt.Print("<nil>")
+	}
+}
+
+
+func main() {
+	var ox = Some2(6)
+	Print([]string{"Hello, ", "playground\n"})
+	PrintOpt(ox)
+
+}
+

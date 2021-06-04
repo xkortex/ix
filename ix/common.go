@@ -10,8 +10,6 @@ import (
 	"sync"
 )
 
-
-
 type StdInContainer struct {
 	Stdin     string
 	Has_stdin bool

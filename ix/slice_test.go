@@ -38,7 +38,9 @@ var parseMultiSliceTests = []fullSliceTests{
 	{"5", MultiSlice{LineSlicer: &SliceIndex{5, 6, 1, true, true, true}}},
 	{"3:5", MultiSlice{LineSlicer: &SliceIndex{3, 5, 1, true, true, false}}},
 	{",3:5", MultiSlice{FieldSlicer: &SliceIndex{3, 5, 1, true, true, false}}},
-	{":,3:5", MultiSlice{FieldSlicer: &SliceIndex{3, 5, 1, true, true, false}}},
+	{":,3:5", MultiSlice{
+		LineSlicer:  &SliceIndex{0, 0, 1, false, false, false},
+		FieldSlicer: &SliceIndex{3, 5, 1, true, true, false}}},
 	{"3:5,3:5", MultiSlice{
 		LineSlicer:  &SliceIndex{3, 5, 1, true, true, false},
 		FieldSlicer: &SliceIndex{3, 5, 1, true, true, false},

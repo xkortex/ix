@@ -100,6 +100,7 @@ impl TryFrom<&str> for FlexibleSlice {
                     x => Some(x.parse::<isize>()?),
                 };
                 let stop = start.map(|x| x + 1);
+                Some(stop.unwrap());
                 Ok(FlexibleSlice{ start, stop, step: None })
             },
             2 => {

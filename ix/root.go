@@ -55,6 +55,7 @@ func RunIx(args []string, sep string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	multiSlice.FillNil()
 	multiSlice.Sep = sep
 	vprint.Printf("Slicer: %v \n", multiSlice)
 	RunIxStdin(multiSlice)

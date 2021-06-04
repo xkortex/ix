@@ -10,6 +10,14 @@ import (
 	"sync"
 )
 
+func b2s(ary [][]byte, sep string ) string {
+	s := ""
+	for _, b := range ary {
+		s += string(b) + sep
+	}
+	return s
+}
+
 func RunIxStdin(slicer *MultiSlice) {
 	if !HasStdinPipe() {
 		log.Fatal("No stdin found")
@@ -26,18 +34,13 @@ func IxRecordSlicer(slicer *MultiSlice, chIn <-chan []byte, chOut chan<- []byte,
 		case <-done:
 			return
 		case chunk_in = <-chIn:
-		vprint.Printf("chIn: `%v'\n", string(chunk_in))
+			vprint.Printf("chIn: `%v'\n", string(chunk_in))
 			parts := bytes.Split(chunk_in, fieldSep)
-			start := slicer.FieldSlicer.Start
-			stop := slicer.FieldSlicer.Stop
-			if start > len(parts) {
-				start = len(parts)
-			}
-			if stop > len(parts) {
-				stop = len(parts)
-			}
-			vprint.Printf("parts: %d [%v:%v]: %v", len(parts), start, stop, parts)
-			chOut<-bytes.Join(parts[start:stop], fieldSep)
+			thisSlicer := slicer.FieldSlicer.Copy()
+			thisSlicer.Normalize(len(parts))
+
+			vprint.Printf("parts: %d [%v:%v]: '%v'", len(parts), thisSlicer.Start, thisSlicer.Stop, b2s(parts, "|"))
+			chOut <- bytes.Join(parts[thisSlicer.Start:thisSlicer.Stop], fieldSep)
 		}
 	}
 }
